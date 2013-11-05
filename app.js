@@ -9,7 +9,7 @@ var program = require('commander'),
     cradle = require('cradle');
 
 var connection = new (cradle.Connection)("localhost", 5984,
-    {cache: true, raw: false});
+    {cache: false, raw: false});
 var db = connection.database('p2000');
 
 program
@@ -35,29 +35,57 @@ db.get(id, function(err, doc){
 
             console.log(message);
 
-            return db.save(id, message, function (err, result){
-                if(err) {
-                    console.log(err);
-                    return;
-                }
-
-                console.log(result);
-            });
+            store(id, "1-"+id, message);
+            return;
         }
     }
 
-    message.capcodes = doc.capcodes;
-    if(message.capcodes.indexOf(program.address)==-1) {
-        message.capcodes.push(program.address);
-        db.merge(id, message, function (err, result){
-            if(err) {
-                console.log(err);
-                return;
-            }
-
-            console.log(result)
-        });
-    } else {
-        console.log("Already stored");
-    }
+    update(id, program.address);
 });
+
+function store(id, rev, message) {
+    return db.save(id, rev, message, function (err, result){
+        if(err) {
+            console.log(err);
+            update(id, message.capcodes[0]);
+            return;
+        }
+
+        console.log(result);
+    });
+}
+
+function update(id, capcode) {
+    db.get(id, function(err, doc){
+
+        var message = {};
+        if(err) {
+            if(err.error=='not_found') {
+                console.log("Imposible!");
+            }
+            return;
+        }
+
+        message.capcodes = doc.capcodes;
+        if(message.capcodes.indexOf(capcode)==-1) {
+            var revs = doc._rev.split("-");
+            console.log(revs);
+            var rev = parseInt(revs[0]) + 1;
+            message.capcodes.push(program.address);
+            var revision = rev+"-"+revs[1];
+            console.log(id, revision);
+            message._rev = revision;
+            db.merge(id, message, function (err, result){
+                if(err) {
+                    console.log(err);
+                    update(id, capcode);
+                    return;
+                }
+
+                console.log(result)
+            });
+        } else {
+            console.log("Already stored");
+        }
+    });
+}

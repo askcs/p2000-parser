@@ -1,0 +1,29 @@
+{
+  "name": "p2000-parser",
+  "version": "0.0.1",
+  "description": "P2000 message parser",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:askcs/p2000-parser.git"
+  },
+  "keywords": [
+    "p2000",
+    "parser",
+    "ask"
+  ],
+  "author": "Sven Stam",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/askcs/p2000-parser/issues"
+  },
+  "dependencies": {
+    "commander": "~2.0.0",
+    "date": "~1.0.2",
+    "moment": "~2.4.0",
+    "cradle": "~0.6.6"
+  }
+}

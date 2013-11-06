@@ -27,4 +27,4 @@ var messageDir = (os.tmpDir().match(path.sep+"$") ? os.tmpDir() : os.tmpDir() + 
 console.log(messageDir);
 
 var message = {id: id, timestamp: timestamp, message: program.message, capcode: program.address};
-//fs.writeFile(messageDir+path.sep+now, JSON.stringify(message));
+fs.writeFile(messageDir+path.sep+now, JSON.stringify(message));

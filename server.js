@@ -54,8 +54,10 @@ function store(message, file) {
 
     return db.save(id, rev, message, function (err, result){
         if(err) {
-            //console.log(err);
-            update(id, message.capcodes[0], file);
+            if(err.error=="conflict") {
+                console.log(err);
+                update(id, message.capcodes[0], file);
+            }
             return;
         }
 
@@ -69,6 +71,7 @@ function update(id, capcode, file) {
 
         var message = {};
         if(err) {
+            console.log(err);
             if(err.error=='not_found') {
                 console.log("Imposible!");
             }

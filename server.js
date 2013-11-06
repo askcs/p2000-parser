@@ -2,14 +2,18 @@
  * Created by sstam on 05-11-13.
  */
 var fs = require('fs'),
-    cradle = require('cradle');
+    cradle = require('cradle'),
+    os = require('os'),
+    path = require('path');
 
 var connection = new (cradle.Connection)("localhost", 5984,
     {cache: false, raw: false});
 var db = connection.database('p2000');
-var DIR = '/tmp/p2000';
+var dir = 'p2000';
+var messageDir = os.tmpdir() + dir;
+var isWin = os.type().match(/^win/);
 
-fs.mkdir(DIR, function(err, res){
+fs.mkdir(messageDir, function(err, res){
     if(err) {
         console.log(err);
         return;
@@ -18,19 +22,22 @@ fs.mkdir(DIR, function(err, res){
     console.log(res);
 });
 
-fs.watch(DIR, function (event, filename) {
+fs.watch(messageDir, function (event, filename) {
     console.log('event is: ' + event);
-    if (filename) {
-
-        fs.readFile(DIR+'/'+filename, 'utf8', function (err,data) {
+    if (filename && ((isWin && event=='change') || !isWin)) {
+        var file = messageDir+path.sep+filename;
+        fs.readFile(file, 'utf8', function (err, data) {
             if (err) {
                 //console.log(err);
                 return;
             }
 
             //console.log(data);
-            store(JSON.parse(data));
-            fs.unlink('message/'+filename);
+            try {
+                store(JSON.parse(data),file);
+            } catch(e) {
+                console.log('ERR: file doesn\'t contain json');
+            }
         });
 
     } else {
@@ -38,7 +45,7 @@ fs.watch(DIR, function (event, filename) {
     }
 });
 
-function store(message) {
+function store(message, file) {
     var id = message.id;
     var rev = "1-" + id;
 
@@ -48,15 +55,16 @@ function store(message) {
     return db.save(id, rev, message, function (err, result){
         if(err) {
             //console.log(err);
-            update(id, message.capcodes[0]);
+            update(id, message.capcodes[0], file);
             return;
         }
 
         console.log(result);
+        fs.unlink(file);
     });
 }
 
-function update(id, capcode) {
+function update(id, capcode, file) {
     db.get(id, function(err, doc){
 
         var message = {};
@@ -79,11 +87,12 @@ function update(id, capcode) {
             db.merge(id, message, function (err, result){
                 if(err) {
                     console.log(err);
-                    update(id, capcode);
+                    update(id, capcode, file);
                     return;
                 }
 
-                console.log(result)
+                console.log(result);
+                fs.unlink(file);
             });
         } else {
             console.log("Already stored");

@@ -4,7 +4,8 @@
   "description": "Receive P2000 message and store on disk",
   "main": "app.js",
   "bin" : {
-      "p2000-receiver" : "app.js"
+      "p2000-receiver" : "app.js",
+      "p2000-parser" : "server.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

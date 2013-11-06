@@ -6,12 +6,16 @@ var fs = require('fs'),
     os = require('os'),
     path = require('path');
 
-var connection = new (cradle.Connection)("localhost", 5984,
-    {cache: false, raw: false});
+var user = '';
+var pass = '';
+var host = 'couchdb.ask-cs.com';
+
+var connection = new (cradle.Connection)(host, 5984,
+    {auth: {username: user, password: pass}, cache: false, raw: false});
 var db = connection.database('p2000');
 var dir = 'p2000';
 var messageDir = (os.tmpDir().match(path.sep+"$") ? os.tmpDir() : os.tmpDir() + path.sep ) + dir;
-var isWin = os.type().match(/^win/);
+var isWin = !!os.platform().match(/^win/);
 
 fs.mkdir(messageDir, function(err, res){
     if(err) {
@@ -23,7 +27,7 @@ fs.mkdir(messageDir, function(err, res){
 });
 
 fs.watch(messageDir, function (event, filename) {
-    console.log('event is: ' + event);
+    console.log('event is: ' + event );
     if (filename && ((isWin && event=='change') || !isWin)) {
         var file = messageDir+path.sep+filename;
         fs.readFile(file, 'utf8', function (err, data) {
@@ -32,9 +36,10 @@ fs.watch(messageDir, function (event, filename) {
                 return;
             }
 
-            //console.log(data);
+            console.log("Read file no error: ",data, event);
             try {
-                store(JSON.parse(data),file);
+                var message = JSON.parse(data);
+                store(message,file);
             } catch(e) {
                 console.log('ERR: file doesn\'t contain json');
             }
@@ -55,14 +60,16 @@ function store(message, file) {
     return db.save(id, rev, message, function (err, result){
         if(err) {
             if(err.error=="conflict") {
-                console.log(err);
+                console.log("Conflict in first time save: ",err);
                 update(id, message.capcodes[0], file);
             }
             return;
         }
 
-        console.log(result);
-        fs.unlink(file);
+        console.log("Saved: ",result);
+        fs.unlink(file, function(err, res){
+            console.log("Deleted the file");
+        });
     });
 }
 

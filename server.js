@@ -10,7 +10,7 @@ var connection = new (cradle.Connection)("localhost", 5984,
     {cache: false, raw: false});
 var db = connection.database('p2000');
 var dir = 'p2000';
-var messageDir = os.tmpdir() + dir;
+var messageDir = (os.tmpDir().match(path.sep+"$") ? os.tmpDir() : os.tmpDir() + path.sep ) + dir;
 var isWin = os.type().match(/^win/);
 
 fs.mkdir(messageDir, function(err, res){

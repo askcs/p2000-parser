@@ -22,9 +22,9 @@ var id = crypto.createHash('md5').update(timestamp+"_"+program.message).digest("
 var now = new Date().getTime();
 
 var dir = 'p2000';
-var messageDir = os.tmpDir() + dir;
+var messageDir = (os.tmpDir().match(path.sep+"$") ? os.tmpDir() : os.tmpDir() + path.sep ) + dir;
 
 console.log(messageDir);
 
 var message = {id: id, timestamp: timestamp, message: program.message, capcode: program.address};
-fs.writeFile(messageDir+path.sep+now, JSON.stringify(message));
+//fs.writeFile(messageDir+path.sep+now, JSON.stringify(message));

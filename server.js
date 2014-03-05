@@ -7,6 +7,7 @@ var fs = require('fs'),
     os = require('os'),
     path = require('path');
 
+/*
 var user = '';
 var pass = '';
 var host = 'couchdb.ask-cs.com';
@@ -14,16 +15,21 @@ var host = 'couchdb.ask-cs.com';
 var connection = new (cradle.Connection)(host, 5984,
     {auth: {username: user, password: pass}, cache: false, raw: false});
 var db = connection.database('p2000');
-var dir = 'p2000';
+*/
+var dir = 'c2000';
 var messageDir = (os.tmpDir().match(path.sep+"$") ? os.tmpDir() : os.tmpDir() + path.sep ) + dir;
 var isWin = !!os.platform().match(/^win/);
 
+
+// Note: May show an EEXIST error, but that will only indicate that the directory you want to create already exists
+// The server just starts and continues with listening to the temp files folder
 fs.mkdir(messageDir, function(err, res){
     if(err) {
         console.log(err);
         return;
     }
 
+	console.log('Created the temp directory for storing messages: ' + dir);
     console.log(res);
 });
 
@@ -58,6 +64,10 @@ function store(message, file) {
     message.capcodes = [message.capcode];
     delete message.capcode;
 
+	// Forward it to a cloud based C2000 agent
+	
+	
+	/*
     return db.save(id, rev, message, function (err, result){
         if(err) {
             if(err.error=="conflict") {
@@ -72,6 +82,7 @@ function store(message, file) {
             console.log("Deleted the file");
         });
     });
+	*/
 }
 
 function update(id, capcode, file) {
